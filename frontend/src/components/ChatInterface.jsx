@@ -72,6 +72,13 @@ export default function ChatInterface({
                 <div className="assistant-message">
                   <div className="message-label">LLM Council</div>
 
+                  {/* Persisted history fallback (Phase B): assistant messages store only final content */}
+                  {!msg.stage1 && !msg.stage2 && !msg.stage3 && msg.content && (
+                    <div className="final-text markdown-content">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  )}
+
                   {/* Stage 1 */}
                   {msg.loading?.stage1 && (
                     <div className="stage-loading">

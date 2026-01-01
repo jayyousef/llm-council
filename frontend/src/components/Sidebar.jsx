@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import './Sidebar.css';
 
 export default function Sidebar({
@@ -37,6 +37,12 @@ export default function Sidebar({
             </div>
           ))
         )}
+      </div>
+
+      <div className="sidebar-footer">
+        <Link className="settings-link" to="/settings/api-keys">
+          Settings
+        </Link>
       </div>
     </div>
   );

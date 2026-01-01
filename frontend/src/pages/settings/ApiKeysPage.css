@@ -1,0 +1,190 @@
+.keys .page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.keys .page-subtitle {
+  color: #555;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+.keys-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.btn-primary {
+  background: #4a90e2;
+  border-color: #4a90e2;
+  color: white;
+}
+
+.btn-small {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.error {
+  background: #ffecec;
+  border: 1px solid #ffbdbd;
+  color: #8a1f1f;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.panel-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.panel-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #444;
+}
+
+.panel-grid input {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.panel-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.table {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 1fr 1fr 0.7fr 1fr;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.row.header {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 12px;
+  color: #333;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 12px;
+}
+
+.status {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  display: inline-block;
+  border: 1px solid #ddd;
+}
+
+.status.active {
+  background: #e9f7ef;
+  border-color: #bde5c8;
+  color: #1e6b3a;
+}
+
+.status.inactive {
+  background: #f2f2f2;
+  color: #666;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reveal {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.reveal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.reveal-title {
+  font-weight: 600;
+}
+
+.reveal-close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+}
+
+.reveal-body {
+  padding: 12px 14px;
+}
+
+.reveal-warning {
+  color: #6a3b00;
+  background: #fff4e5;
+  border: 1px solid #f0d3a3;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.reveal-key {
+  margin: 0;
+  padding: 12px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  overflow: auto;
+  font-size: 12px;
+}
+
+.reveal-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+

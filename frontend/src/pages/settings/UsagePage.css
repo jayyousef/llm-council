@@ -1,0 +1,90 @@
+.usage .page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #444;
+}
+
+.filters input {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.card .label {
+  font-size: 12px;
+  color: #666;
+}
+
+.card .value {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.usage .error {
+  background: #ffecec;
+  border: 1px solid #ffbdbd;
+  color: #8a1f1f;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.usage .table {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.usage .row {
+  display: grid;
+  grid-template-columns: 1.5fr 0.6fr 0.8fr 0.8fr;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.usage .row.header {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 12px;
+  color: #333;
+}
+
+.usage .mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 12px;
+}

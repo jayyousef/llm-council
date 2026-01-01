@@ -1,0 +1,68 @@
+.limits .page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.limits .btn {
+  margin-bottom: 12px;
+}
+
+.limits .error {
+  background: #ffecec;
+  border: 1px solid #ffbdbd;
+  color: #8a1f1f;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.limits .panel {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.limits .row {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f1f1;
+  align-items: center;
+}
+
+.limits .row:last-child {
+  border-bottom: none;
+}
+
+.limits .label {
+  color: #555;
+  font-size: 13px;
+}
+
+.limits .value {
+  color: #222;
+  font-weight: 500;
+}
+
+.pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+}
+
+.pill-ok {
+  background: #e9f7ef;
+  border-color: #bde5c8;
+  color: #1e6b3a;
+}
+
+.pill-bad {
+  background: #ffecec;
+  border-color: #ffbdbd;
+  color: #8a1f1f;
+}
+

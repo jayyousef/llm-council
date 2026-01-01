@@ -76,3 +76,21 @@
   color: #999;
   font-size: 12px;
 }
+
+.sidebar-footer {
+  border-top: 1px solid #e0e0e0;
+  padding: 12px 16px;
+}
+
+.settings-link {
+  display: block;
+  text-decoration: none;
+  color: #357abd;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.settings-link:hover {
+  background: #efefef;
+}

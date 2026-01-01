@@ -59,6 +59,19 @@ CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
 
 ## Running the Application
 
+### Option 1: Docker Compose (recommended)
+
+Set `OPENROUTER_API_KEY` in your environment (or a `.env` file):
+
+```bash
+export OPENROUTER_API_KEY=sk-or-v1-...
+docker compose up --build
+```
+
+Then open http://localhost:5173.
+
+By default, local compose runs with `ALLOW_NO_AUTH=true` so you can use the UI without an API key header.
+
 **Option 1: Use the start script**
 ```bash
 ./start.sh
@@ -68,7 +81,7 @@ CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
 
 Terminal 1 (Backend):
 ```bash
-uv run python -m backend.main
+uv run python -m backend.src.app.main
 ```
 
 Terminal 2 (Frontend):
@@ -83,5 +96,76 @@ Then open http://localhost:5173 in your browser.
 
 - **Backend:** FastAPI (Python 3.10+), async httpx, OpenRouter API
 - **Frontend:** React + Vite, react-markdown for rendering
-- **Storage:** JSON files in `data/conversations/`
+- **Storage:** Postgres (SQLModel + Alembic)
 - **Package Management:** uv for Python, npm for JavaScript
+
+### Alternate backend run command
+
+```bash
+uvicorn backend.src.app.main:app --reload --port 8001
+```
+
+## Customer UI (Key-only)
+
+The web UI is **key-only** auth for now (no login). You paste an API key once and it is stored in your browser `localStorage` and sent on requests as `X-API-Key`.
+
+Settings pages:
+- `http://localhost:5173/settings/api-keys`
+- `http://localhost:5173/settings/usage`
+- `http://localhost:5173/settings/limits`
+
+Backend endpoints used by the Settings UI:
+- `GET /api/account/api-keys`
+- `POST /api/account/api-keys`
+- `POST /api/account/api-keys/{api_key_id}/deactivate`
+- `POST /api/account/api-keys/{api_key_id}/rotate`
+- `GET /api/account/usage?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- `GET /api/account/limits`
+
+### API keys (production mode)
+
+When `ALLOW_NO_AUTH` is not set to `true`, the backend requires an `X-API-Key` header.
+
+- Create a key (prints plaintext once): `python3 -m backend.src.scripts.create_api_key`
+- Deactivate a key: `python3 -m backend.src.scripts.deactivate_api_key <api_key_id>`
+- Rotate a key (optionally deactivating an old one): `python3 -m backend.src.scripts.rotate_api_key --deactivate-id <api_key_id>`
+- Set a pepper for hashing: `export API_KEY_PEPPER=...`
+
+If `monthly_token_cap` is set for a key, requests that start a run will be rejected with HTTP `402` `quota_exceeded` once the current UTC calendar month cap is exceeded.
+
+## MCP (Local, stdio)
+
+This repo includes an MCP server that runs over **stdio** for locally spawned IDE/tool sessions.
+It is not a hosted multi-client network service and is not directly usable from a remote deployment (e.g. Railway)
+because MCP stdio requires a local process connection. Use the HTTP API for hosted/multi-client access.
+In the future, an HTTP gateway could expose MCP tools remotely, but that is not implemented here.
+
+Run locally:
+
+```bash
+export DATABASE_URL=postgresql+asyncpg://...
+export MCP_API_KEY=...  # optional if ALLOW_NO_AUTH=true
+python3 -m backend.src.mcp.server
+```
+
+Available tools:
+- `council.ask`: run the 3-stage council and return a final answer (strict JSON)
+- `council.pipeline`: run a bounded software-factory pipeline and return a Codex prompt (strict JSON)
+
+## Hosted Tools Gateway (HTTP)
+
+For hosted / multi-client usage over the internet, call the HTTP tools gateway endpoints (authenticated via `X-API-Key`):
+
+- `POST /api/tools/council.ask`
+- `POST /api/tools/council.pipeline`
+
+These endpoints accept the same JSON inputs as the MCP tools (except `api_key` is not accepted in the request body) and return the same strict JSON outputs.
+
+Example:
+
+```bash
+curl -sS http://localhost:8001/api/tools/council.ask \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: lc_***' \
+  -d '{"prompt":"Hello","mode":"balanced"}'
+```
