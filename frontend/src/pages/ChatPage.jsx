@@ -9,6 +9,7 @@ export default function ChatPage({ onAuthRequired }) {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [banner, setBanner] = useState(null);
 
   useEffect(() => {
@@ -17,11 +18,17 @@ export default function ChatPage({ onAuthRequired }) {
 
   useEffect(() => {
     if (currentConversationId) {
-      loadConversation(currentConversationId);
+      if (currentConversation?.id !== currentConversationId) {
+        loadConversation(currentConversationId);
+      }
     }
-  }, [currentConversationId]);
+  }, [currentConversationId, currentConversation?.id]);
 
   const handleApiError = (error) => {
+    if (error instanceof ApiError && error.status === 0) {
+      setBanner('Network error: could not reach the API.');
+      return true;
+    }
     if (error instanceof ApiError && error.status === 401) {
       setBanner('API key required (401).');
       onAuthRequired?.();
@@ -34,13 +41,24 @@ export default function ChatPage({ onAuthRequired }) {
     return false;
   };
 
+  const showError = (action, error) => {
+    if (error instanceof ApiError) {
+      console.error(`${action} failed`, { status: error.status, detail: error.detail, error });
+      if (handleApiError(error)) return;
+      setBanner(`${action} failed (${error.status}). ${error.detail || 'Please try again.'}`);
+      return;
+    }
+    console.error(`${action} failed`, error);
+    setBanner(`${action} failed. ${error?.message || 'Please try again.'}`);
+  };
+
   const loadConversations = async () => {
     try {
       const convs = await api.listConversations();
       setConversations(convs);
       setBanner(null);
     } catch (error) {
-      if (!handleApiError(error)) console.error('Failed to load conversations:', error);
+      showError('Loading conversations', error);
     }
   };
 
@@ -50,21 +68,26 @@ export default function ChatPage({ onAuthRequired }) {
       setCurrentConversation(conv);
       setBanner(null);
     } catch (error) {
-      if (!handleApiError(error)) console.error('Failed to load conversation:', error);
+      showError('Loading conversation', error);
     }
   };
 
   const handleNewConversation = async () => {
+    if (isCreatingConversation) return;
+    setIsCreatingConversation(true);
     try {
       const newConv = await api.createConversation();
-      setConversations([
-        { id: newConv.id, created_at: newConv.created_at, message_count: 0 },
-        ...conversations,
+      setConversations((prev) => [
+        { id: newConv.id, created_at: newConv.created_at, title: newConv.title, message_count: 0 },
+        ...prev,
       ]);
       setCurrentConversationId(newConv.id);
+      setCurrentConversation(newConv);
       setBanner(null);
     } catch (error) {
-      if (!handleApiError(error)) console.error('Failed to create conversation:', error);
+      showError('Creating conversation', error);
+    } finally {
+      setIsCreatingConversation(false);
     }
   };
 
@@ -164,6 +187,7 @@ export default function ChatPage({ onAuthRequired }) {
             break;
           case 'error':
             console.error('Stream error:', event.message);
+            setBanner(`Stream error. ${event.message || 'Please try again.'}`);
             setIsLoading(false);
             break;
           default:
@@ -172,7 +196,7 @@ export default function ChatPage({ onAuthRequired }) {
       });
       setBanner(null);
     } catch (error) {
-      if (!handleApiError(error)) console.error('Failed to send message:', error);
+      showError('Sending message', error);
       setCurrentConversation((prev) => ({
         ...prev,
         messages: prev.messages.slice(0, -2),
@@ -188,6 +212,7 @@ export default function ChatPage({ onAuthRequired }) {
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
+        isCreatingConversation={isCreatingConversation}
       />
       <div className="chat-shell">
         {banner ? <div className="banner">{banner}</div> : null}
@@ -196,4 +221,3 @@ export default function ChatPage({ onAuthRequired }) {
     </div>
   );
 }
-

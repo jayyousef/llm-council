@@ -6,13 +6,18 @@ export default function Sidebar({
   currentConversationId,
   onSelectConversation,
   onNewConversation,
+  isCreatingConversation = false,
 }) {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
         <h1>LLM Council</h1>
-        <button className="new-conversation-btn" onClick={onNewConversation}>
-          + New Conversation
+        <button
+          className="new-conversation-btn"
+          onClick={onNewConversation}
+          disabled={isCreatingConversation}
+        >
+          {isCreatingConversation ? 'Creating…' : '+ New Conversation'}
         </button>
       </div>
 

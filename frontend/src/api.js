@@ -2,7 +2,9 @@
  * API client for the LLM Council backend.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+import { getApiBaseUrl } from './config';
+
+const API_BASE = getApiBaseUrl();
 const API_KEY_STORAGE = 'llm_council_api_key';
 
 export class ApiError extends Error {
@@ -38,10 +40,15 @@ function buildHeaders(extra = {}) {
 }
 
 async function requestJson(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: buildHeaders(options.headers || {}),
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: buildHeaders(options.headers || {}),
+    });
+  } catch (error) {
+    throw new ApiError(`Network error: ${path}`, 0, error?.message || null);
+  }
 
   let body = null;
   const contentType = response.headers.get('content-type') || '';
@@ -105,16 +112,21 @@ export const api = {
    * @returns {Promise<void>}
    */
   async sendMessageStream(conversationId, content, onEvent) {
-    const response = await fetch(
-      `${API_BASE}/api/conversations/${conversationId}/message/stream`,
-      {
-        method: 'POST',
-        headers: buildHeaders({
-          'Content-Type': 'application/json',
-        }),
-        body: JSON.stringify({ content }),
-      }
-    );
+    let response;
+    try {
+      response = await fetch(
+        `${API_BASE}/api/conversations/${conversationId}/message/stream`,
+        {
+          method: 'POST',
+          headers: buildHeaders({
+            'Content-Type': 'application/json',
+          }),
+          body: JSON.stringify({ content }),
+        }
+      );
+    } catch (error) {
+      throw new ApiError('Network error: streaming request failed', 0, error?.message || null);
+    }
 
     if (!response.ok) {
       let detail = null;
@@ -131,7 +143,6 @@ export const api = {
     const decoder = new TextDecoder();
 
     let buffer = '';
-    let eventType = null;
     let dataLines = [];
 
     function dispatchEvent() {
@@ -148,7 +159,6 @@ export const api = {
         console.error('Failed to parse SSE event payload:', e, dataStr);
       }
 
-      eventType = null;
     }
 
     while (true) {
@@ -168,7 +178,7 @@ export const api = {
           if (!line || line.startsWith(':')) continue; // comments / keep-alives
 
           if (line.startsWith('event:')) {
-            eventType = line.slice('event:'.length).trim();
+            // event type is included in the JSON payload as `type`; ignore SSE `event:` for now
           } else if (line.startsWith('data:')) {
             dataLines.push(line.slice('data:'.length).trimStart());
           }
