@@ -1,5 +1,5 @@
 server {
-  listen 80;
+  listen ${PORT};
   server_name _;
 
   root /usr/share/nginx/html;
@@ -9,4 +9,3 @@ server {
     try_files $uri $uri/ /index.html;
   }
 }
-

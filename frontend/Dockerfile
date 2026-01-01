@@ -8,7 +8,15 @@ COPY frontend /app
 RUN npm run build
 
 FROM nginx:alpine
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
 
+# Put the nginx config template somewhere we control
+COPY frontend/nginx.conf.template /etc/nginx/templates/nginx.conf.template
+
+# Copy static build output
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Railway provides PORT; default to 80 for local runs
+ENV PORT=80
+
+# Render nginx config at runtime with env var substitution, then run nginx
+CMD sh -c "envsubst '\$PORT' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
