@@ -130,27 +130,59 @@ export const api = {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
+    let buffer = '';
+    let eventType = null;
+    let dataLines = [];
+
+    function dispatchEvent() {
+      if (!dataLines.length) return;
+
+      const dataStr = dataLines.join('\n');
+      dataLines = [];
+
+      // Your backend sends JSON in data:
+      try {
+        const event = JSON.parse(dataStr);
+        onEvent(event.type, event);
+      } catch (e) {
+        console.error('Failed to parse SSE event payload:', e, dataStr);
+      }
+
+      eventType = null;
+    }
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
+      buffer += decoder.decode(value, { stream: true });
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          try {
-            const event = JSON.parse(data);
-            onEvent(event.type, event);
-          } catch (e) {
-            console.error('Failed to parse SSE event:', e);
+      // SSE events are separated by a blank line
+      let sepIndex;
+      while ((sepIndex = buffer.indexOf('\n\n')) !== -1) {
+        const rawEvent = buffer.slice(0, sepIndex);
+        buffer = buffer.slice(sepIndex + 2);
+
+        const lines = rawEvent.split('\n');
+        for (const line of lines) {
+          if (!line || line.startsWith(':')) continue; // comments / keep-alives
+
+          if (line.startsWith('event:')) {
+            eventType = line.slice('event:'.length).trim();
+          } else if (line.startsWith('data:')) {
+            dataLines.push(line.slice('data:'.length).trimStart());
           }
+          // ignore id:/retry: for now
         }
+
+        dispatchEvent();
       }
     }
-  },
 
+    // Flush any trailing complete event if it exists (rare)
+    dispatchEvent();  
+    },
+    
   async listAccountApiKeys() {
     return requestJson('/api/account/api-keys');
   },
