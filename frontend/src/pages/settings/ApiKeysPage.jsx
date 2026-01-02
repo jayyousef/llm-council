@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ApiError, api } from '../../api';
 import { useApiKey } from '../../ApiKeyContext';
+import { asArray } from '../../utils/safe';
 import './ApiKeysPage.css';
 
 function KeyReveal({ title, plaintextKey, onUseNow, onClose }) {
@@ -54,7 +55,8 @@ export default function ApiKeysPage({ onAuthRequired }) {
     setError(null);
     try {
       const data = await api.listAccountApiKeys();
-      setKeys(data);
+      if (!Array.isArray(data)) throw new Error('Invalid response: expected API keys array');
+      setKeys(asArray(data));
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
         onAuthRequired?.();

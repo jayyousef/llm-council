@@ -2,7 +2,17 @@ import { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import ChatInterface from '../components/ChatInterface';
 import { ApiError, api } from '../api';
+import { asArray, asString } from '../utils/safe';
 import './ChatPage.css';
+
+function normalizeConversation(conversation) {
+  if (!conversation || typeof conversation !== 'object') return null;
+  return {
+    ...conversation,
+    title: asString(conversation.title, ''),
+    messages: asArray(conversation.messages),
+  };
+}
 
 export default function ChatPage({ onAuthRequired }) {
   const [conversations, setConversations] = useState([]);
@@ -55,6 +65,7 @@ export default function ChatPage({ onAuthRequired }) {
   const loadConversations = async () => {
     try {
       const convs = await api.listConversations();
+      if (!Array.isArray(convs)) throw new Error('Invalid response: expected conversations array');
       setConversations(convs);
       setBanner(null);
     } catch (error) {
@@ -65,7 +76,9 @@ export default function ChatPage({ onAuthRequired }) {
   const loadConversation = async (id) => {
     try {
       const conv = await api.getConversation(id);
-      setCurrentConversation(conv);
+      const normalized = normalizeConversation(conv);
+      if (!normalized) throw new Error('Invalid response: expected conversation object');
+      setCurrentConversation(normalized);
       setBanner(null);
     } catch (error) {
       showError('Loading conversation', error);
@@ -77,12 +90,19 @@ export default function ChatPage({ onAuthRequired }) {
     setIsCreatingConversation(true);
     try {
       const newConv = await api.createConversation();
+      const normalized = normalizeConversation(newConv);
+      if (!normalized) throw new Error('Invalid response: expected conversation object');
       setConversations((prev) => [
-        { id: newConv.id, created_at: newConv.created_at, title: newConv.title, message_count: 0 },
-        ...prev,
+        {
+          id: normalized.id,
+          created_at: normalized.created_at,
+          title: normalized.title,
+          message_count: 0,
+        },
+        ...asArray(prev),
       ]);
-      setCurrentConversationId(newConv.id);
-      setCurrentConversation(newConv);
+      setCurrentConversationId(normalized.id);
+      setCurrentConversation(normalized);
       setBanner(null);
     } catch (error) {
       showError('Creating conversation', error);
@@ -101,10 +121,10 @@ export default function ChatPage({ onAuthRequired }) {
     setIsLoading(true);
     try {
       const userMessage = { role: 'user', content };
-      setCurrentConversation((prev) => ({
-        ...prev,
-        messages: [...prev.messages, userMessage],
-      }));
+      setCurrentConversation((prev) => {
+        const prevMessages = asArray(prev?.messages);
+        return { ...(prev || {}), messages: [...prevMessages, userMessage] };
+      });
 
       const assistantMessage = {
         role: 'assistant',
@@ -119,25 +139,27 @@ export default function ChatPage({ onAuthRequired }) {
         },
       };
 
-      setCurrentConversation((prev) => ({
-        ...prev,
-        messages: [...prev.messages, assistantMessage],
-      }));
+      setCurrentConversation((prev) => {
+        const prevMessages = asArray(prev?.messages);
+        return { ...(prev || {}), messages: [...prevMessages, assistantMessage] };
+      });
 
       await api.sendMessageStream(currentConversationId, content, (eventType, event) => {
         switch (eventType) {
           case 'stage1_start':
             setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
+              const messages = [...asArray(prev?.messages)];
               const lastMsg = messages[messages.length - 1];
+              if (!lastMsg) return prev;
               lastMsg.loading.stage1 = true;
               return { ...prev, messages };
             });
             break;
           case 'stage1_complete':
             setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
+              const messages = [...asArray(prev?.messages)];
               const lastMsg = messages[messages.length - 1];
+              if (!lastMsg) return prev;
               lastMsg.stage1 = event.data;
               lastMsg.loading.stage1 = false;
               return { ...prev, messages };
@@ -145,16 +167,18 @@ export default function ChatPage({ onAuthRequired }) {
             break;
           case 'stage2_start':
             setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
+              const messages = [...asArray(prev?.messages)];
               const lastMsg = messages[messages.length - 1];
+              if (!lastMsg) return prev;
               lastMsg.loading.stage2 = true;
               return { ...prev, messages };
             });
             break;
           case 'stage2_complete':
             setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
+              const messages = [...asArray(prev?.messages)];
               const lastMsg = messages[messages.length - 1];
+              if (!lastMsg) return prev;
               lastMsg.stage2 = event.data;
               lastMsg.metadata = event.metadata;
               lastMsg.loading.stage2 = false;
@@ -163,16 +187,18 @@ export default function ChatPage({ onAuthRequired }) {
             break;
           case 'stage3_start':
             setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
+              const messages = [...asArray(prev?.messages)];
               const lastMsg = messages[messages.length - 1];
+              if (!lastMsg) return prev;
               lastMsg.loading.stage3 = true;
               return { ...prev, messages };
             });
             break;
           case 'stage3_complete':
             setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
+              const messages = [...asArray(prev?.messages)];
               const lastMsg = messages[messages.length - 1];
+              if (!lastMsg) return prev;
               lastMsg.stage3 = event.data;
               lastMsg.loading.stage3 = false;
               return { ...prev, messages };
@@ -199,7 +225,7 @@ export default function ChatPage({ onAuthRequired }) {
       showError('Sending message', error);
       setCurrentConversation((prev) => ({
         ...prev,
-        messages: prev.messages.slice(0, -2),
+        messages: asArray(prev?.messages).slice(0, -2),
       }));
       setIsLoading(false);
     }
