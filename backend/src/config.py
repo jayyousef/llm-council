@@ -126,3 +126,28 @@ GATE_MODEL = os.getenv("GATE_MODEL")
 
 # Data directory for conversation storage
 DATA_DIR = "data/conversations"
+
+# CORS (comma-separated list of origins; "*" allowed only when explicitly set to "*").
+# - If unset in development: allow local dev origins.
+# - If unset in production: deny by default (empty list).
+CORS_ALLOW_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS")
+
+
+def cors_allow_origins() -> list[str]:
+    raw = (CORS_ALLOW_ORIGINS or "").strip()
+    if raw == "*":
+        return ["*"]
+    if raw:
+        items = [v.strip() for v in raw.split(",")]
+        items = [v for v in items if v and v != "*"]
+        return items
+
+    # Defaults when unset.
+    if ENV == "production":
+        return []
+    return [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+    ]

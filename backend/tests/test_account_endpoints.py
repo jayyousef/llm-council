@@ -204,3 +204,26 @@ async def test_account_limits(session, monkeypatch):
         assert body["tokens_used_this_month"] == 6
         assert body["tokens_remaining"] == 4
         assert body["quota_exceeded"] is False
+
+
+@pytest.mark.asyncio
+async def test_account_api_keys_returns_json_with_cors_on_server_misconfig(session, monkeypatch):
+    monkeypatch.setattr(auth_module, "ALLOW_NO_AUTH", False)
+    monkeypatch.setattr(auth_module, "API_KEY_PEPPER", "")
+
+    with _client() as c:
+        r = c.get(
+            "/api/account/api-keys",
+            headers={
+                **_auth_header("lc_any_key"),
+                "Origin": "http://localhost:5173",
+                "X-Request-ID": "req_test_123",
+            },
+        )
+        assert r.status_code == 500
+        body = r.json()
+        assert body["detail"] == "api_key_pepper_missing"
+        assert body["request_id"] == "req_test_123"
+        assert body["error_code"] == "api_key_pepper_missing"
+        assert r.headers.get("X-Request-ID") == "req_test_123"
+        assert r.headers.get("Access-Control-Allow-Origin") == "http://localhost:5173"

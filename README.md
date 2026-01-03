@@ -131,6 +131,14 @@ When `ALLOW_NO_AUTH` is not set to `true`, the backend requires an `X-API-Key` h
 - Rotate a key (optionally deactivating an old one): `python3 -m backend.src.scripts.rotate_api_key --deactivate-id <api_key_id>`
 - Set a pepper for hashing: `export API_KEY_PEPPER=...`
 
+### CORS (Railway / production)
+
+If the frontend is hosted on a different domain (e.g. Railway), set `CORS_ALLOW_ORIGINS` on the backend to the frontend origin (no trailing slash), for example:
+
+```bash
+export CORS_ALLOW_ORIGINS=https://llm-council-frontend-production-6845.up.railway.app
+```
+
 If `monthly_token_cap` is set for a key, requests that start a run will be rejected with HTTP `402` `quota_exceeded` once the current UTC calendar month cap is exceeded.
 
 ## MCP (Local, stdio)

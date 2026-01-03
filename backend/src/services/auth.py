@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 def hash_api_key(plaintext_key: str) -> str:
     if not API_KEY_PEPPER and not ALLOW_NO_AUTH:
-        raise RuntimeError("API_KEY_PEPPER must be set when ALLOW_NO_AUTH is false")
+        logger.error("Missing API_KEY_PEPPER while ALLOW_NO_AUTH is false (server misconfigured)")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="api_key_pepper_missing")
     secret = (API_KEY_PEPPER or "").encode("utf-8")
     msg = plaintext_key.encode("utf-8")
     return hmac.new(secret, msg, hashlib.sha256).hexdigest()
